@@ -27,6 +27,7 @@ import javax.swing.JTextArea;
 import com.google.gson.Gson;
 
 import mensajeria.PaqueteUsuario;
+import java.awt.TextArea;
 
 public class Servidor extends Thread {
 	public static ArrayList<Socket> SocketsConectados = new ArrayList<Socket>();
@@ -39,42 +40,34 @@ public class Servidor extends Thread {
 	
 	private static Thread server;
 	
-	public static JTextArea log;
+	static TextArea log = new TextArea();
+	static boolean estadoServer;
 	
-	private final static int ANCHO = 700;
-	private final static int ALTO = 640;
-	private final static int ALTO_LOG = 520;
-	private final static int ANCHO_LOG = ANCHO - 25;
-	
-	public static AtencionConexiones atencionConexiones = new AtencionConexiones();
+	public static AtencionConexiones atencionConexiones;
 	
 	public static void main(String[] args) {
 		cargarInterfaz();
 	}
 	
 	private static void cargarInterfaz() {
-		JFrame ventana = new JFrame("Servidor Chat");
+		JFrame ventana = new JFrame("Servidor del Chat");
 		ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		ventana.setSize(ANCHO, ALTO);
+		ventana.setSize(542, 538);
 		ventana.setResizable(false);
 		ventana.setLocationRelativeTo(null);
-		ventana.setLayout(null);
-		JLabel titulo = new JLabel("Log del servidor...");
-		titulo.setFont(new Font("Courier New", Font.BOLD, 16));
-		titulo.setBounds(10, 0, 200, 30);
-		ventana.add(titulo);
+		ventana.getContentPane().setLayout(null);
 
-		log = new JTextArea();
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(12, 13, 512, 434);
+		ventana.getContentPane().add(scrollPane);
 		log.setEditable(false);
-		log.setFont(new Font("Times New Roman", Font.PLAIN, 13));
-		JScrollPane scroll = new JScrollPane(log, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scroll.setBounds(10, 40, ANCHO_LOG, ALTO_LOG);
-		ventana.add(scroll);
-
+		
+		scrollPane.setViewportView(log);
+		
 		final JButton botonIniciar = new JButton();
 		final JButton botonDetener = new JButton();
-		botonIniciar.setText("Iniciar");
-		botonIniciar.setBounds(220, ALTO - 70, 100, 30);
+		botonIniciar.setText("Start");
+		botonIniciar.setBounds(12, 460, 100, 30);
 		botonIniciar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				server = new Thread(new Servidor());
@@ -84,20 +77,23 @@ public class Servidor extends Thread {
 			}
 		});
 
-		ventana.add(botonIniciar);
+		ventana.getContentPane().add(botonIniciar);
 
-		botonDetener.setText("Detener");
-		botonDetener.setBounds(360, ALTO - 70, 100, 30);
+		botonDetener.setText("Stop");
+		botonDetener.setBounds(424, 460, 100, 30);
 		botonDetener.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
+					estadoServer = false;
 					server.stop();
+					atencionConexiones.stop();
 					for (EscuchaCliente cliente : clientesConectados) {
 						cliente.getSalida().close();
 						cliente.getEntrada().close();
 						cliente.getSocket().close();
 					}
 					serverSocket.close();
+					log.append("El servidor se ha detenido." + System.lineSeparator());
 				} catch (IOException e1) {
 					log.append("Fallo al intentar detener el servidor." + System.lineSeparator());
 					e1.printStackTrace();
@@ -107,14 +103,19 @@ public class Servidor extends Thread {
 			}
 		});
 		botonDetener.setEnabled(false);
-		ventana.add(botonDetener);
+		ventana.getContentPane().add(botonDetener);
+		
+		
+		
 
 		ventana.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		ventana.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				if (serverSocket != null) {
 					try {
+						estadoServer = false;
 						server.stop();
+						atencionConexiones.stop();
 						for (EscuchaCliente cliente : clientesConectados) {
 							cliente.getSalida().close();
 							cliente.getEntrada().close();
@@ -137,14 +138,15 @@ public class Servidor extends Thread {
 	@Override
 	public void run() {
 		try {
+			estadoServer = true;
 			log.append("Iniciando el servidor..." + System.lineSeparator());
 			serverSocket = new ServerSocket(puerto);
 			log.append("Servidor esperando conexiones..." + System.lineSeparator());
 			String ipRemota;
-			
+			atencionConexiones = new AtencionConexiones();
 			atencionConexiones.start();
 
-			while (true) {
+			while (estadoServer) {
 				Socket cliente = serverSocket.accept();
 				//Agrego el Socket a la lista de Sockets
 				SocketsConectados.add(cliente);
