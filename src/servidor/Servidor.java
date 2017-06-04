@@ -33,7 +33,7 @@ public class Servidor extends Thread {
 	public static ArrayList<Socket> SocketsConectados = new ArrayList<Socket>();
 	public static ArrayList<String> UsuariosConectados = new ArrayList<String>();
 	private static ArrayList<EscuchaCliente> clientesConectados = new ArrayList<>();
-	private static Map<String, PaqueteUsuario> personajesConectados = new HashMap<>();
+	public static Map<String, PaqueteUsuario> personajesConectados = new HashMap<>();
 	
 	private static ServerSocket serverSocket;
 	private final int puerto = 9999;
