@@ -1,11 +1,12 @@
 package servidor;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.google.gson.Gson;
 
-import cliente.*;
 import mensajeria.Comando;
 import mensajeria.Paquete;
 import mensajeria.PaqueteDeUsuarios;
@@ -44,7 +45,8 @@ public class EscuchaCliente extends Thread {
 					
 					case Comando.CONEXION:
 						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class)).clone();
-	
+						
+						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
 						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
 						
 						synchronized(Servidor.atencionConexiones){
@@ -140,6 +142,7 @@ public class EscuchaCliente extends Thread {
 			salida.close();
 			socket.close();
 
+			Servidor.getPersonajesConectados().remove(paqueteUsuario.getUsername());
 			Servidor.getUsuariosConectados().remove(paqueteUsuario.getUsername());
 			Servidor.getClientesConectados().remove(this);
 
