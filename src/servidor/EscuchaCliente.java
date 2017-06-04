@@ -17,7 +17,7 @@ public class EscuchaCliente extends Thread {
 	private final Socket socket;
 	private final ObjectInputStream entrada;
 	private final ObjectOutputStream salida;
-	private int idEmisor;
+//	private int idEmisor;
 	private final Gson gson = new Gson();
 	
 	private PaqueteUsuario paqueteUsuario;
@@ -67,7 +67,6 @@ public class EscuchaCliente extends Thread {
 							paqueteUsuario = new PaqueteUsuario();
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
-							idEmisor = paqueteUsuario.getIdUser();
 							
 							salida.writeObject(gson.toJson(paqueteUsuario));
 							
@@ -94,7 +93,10 @@ public class EscuchaCliente extends Thread {
 						Servidor.log.append(paquete.getIp() + " se ha desconectado." + System.lineSeparator());
 						
 						return;
-	
+						
+					case Comando.DESCONECTAR:
+						Servidor.log.append(paqueteUsuario.getUsername() + " se ha desconectado." + System.lineSeparator());
+						break;
 //					case Comando.BATALLA:
 //						
 //						// Le reenvio al id del personaje batallado que quieren pelear
@@ -172,9 +174,9 @@ public class EscuchaCliente extends Thread {
 		return salida;
 	}
 	
-	public int getIdEmisor() {
-		return idEmisor;
-	}
+//	public int getIdEmisor() {
+//		return idEmisor;
+//	}
 
 	public PaqueteUsuario getPaqueteUsuario() {
 		return paqueteUsuario;
