@@ -21,6 +21,7 @@ import java.util.Random;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -160,7 +161,7 @@ public class Servidor extends Thread {
 				ObjectOutputStream salida = new ObjectOutputStream(cliente.getOutputStream());
 				ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
 				
-				//AddUsername(cliente);
+//				AddUsername(cliente);
 				
 				EscuchaCliente atencion = new EscuchaCliente(ipRemota, cliente, entrada, salida);
 				atencion.start();
@@ -208,7 +209,6 @@ public class Servidor extends Thread {
 			if(UsuariosConectados.contains(user.getUsername())) {
 				result = false;
 			}
-
 			// Si existe inicio sesion
 			if (result) {
 			Servidor.log.append("El usuario " + user.getUsername() + " ha iniciado sesión." + System.lineSeparator());

@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.google.gson.Gson;
 
@@ -72,23 +73,22 @@ public class EscuchaCliente extends Thread {
 						
 						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
-							
-							Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
-							Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
-							synchronized(Servidor.atencionConexiones){
-								Servidor.atencionConexiones.notify();
-							}
-							paqueteUsuario.setUsuarioConectado(Servidor.getUsuariosConectados());
-							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
-								conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
-							}
-							paqueteUsuario.setUsuarioConectado(Servidor.UsuariosConectados);
+//							String user = paqueteUsuario.getUsername();
 //							paqueteUsuario = new PaqueteUsuario();
 							
+							paqueteUsuario.setListaDeConectados(Servidor.UsuariosConectados);
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
+							
+							
+//							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
+//								conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
+//							}
+							
+							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
+							
 							salida.writeObject(gson.toJson(paqueteUsuario));
-					
+							
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));
@@ -107,6 +107,7 @@ public class EscuchaCliente extends Thread {
 						
 						// Lo elimino de los clientes conectados
 						Servidor.getClientesConectados().remove(this);
+						Servidor.UsuariosConectados.remove(paqueteUsuario.getUsername());
 						
 						// Indico que se desconecto
 						Servidor.log.append(paquete.getIp() + " se ha desconectado." + System.lineSeparator());
