@@ -64,18 +64,20 @@ public class EscuchaCliente extends Thread {
 						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class));
 						
 						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
+							
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
 							
-//							String user = paqueteUsuario.getUsername();
-//							paqueteUsuario = new PaqueteUsuario();
-							
 							paqueteUsuario.setListaDeConectados(Servidor.UsuariosConectados);
-							System.out.println("ANSDASDASDA ");
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
-							salida.writeObject(gson.toJson(paqueteUsuario));
-							
 							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
+							
+							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
+								System.out.println("ESCHUCHA CLIENTE");
+						        conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
+						    }
+//							salida.writeObject(gson.toJson(paqueteUsuario));
+							
 							
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);

@@ -160,6 +160,7 @@ public class Servidor extends Thread {
 //				AddUsername(cliente);
 				
 				EscuchaCliente atencion = new EscuchaCliente(ipRemota, cliente, entrada, salida);
+				
 				atencion.start();
 				clientesConectados.add(atencion);
 			}
@@ -202,7 +203,7 @@ public class Servidor extends Thread {
 
 	public static boolean loguearUsuario(PaqueteUsuario user) {
 			boolean result = true;
-			if(UsuariosConectados.contains(user))
+			if(UsuariosConectados.contains(user.getUsername()))
 				result = false;
 			
 			// Si existe inicio sesion

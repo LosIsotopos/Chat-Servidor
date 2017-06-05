@@ -23,6 +23,7 @@ public class AtencionConexiones extends Thread {
 						if(conectado.getPaqueteUsuario().getEstado()){
 							PaqueteDeUsuarios pdu = (PaqueteDeUsuarios) new PaqueteDeUsuarios(Servidor.getUsuariosConectados()).clone();
 							pdu.setComando(Comando.CONEXION);
+							System.out.println("ATENCIOPN CONEXIONES");
 							conectado.getSalida().writeObject(gson.toJson(pdu));		
 						}
 					}
