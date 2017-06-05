@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.google.gson.Gson;
 
@@ -65,11 +66,16 @@ public class EscuchaCliente extends Thread {
 						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
 							
-							paqueteUsuario = new PaqueteUsuario();
+//							String user = paqueteUsuario.getUsername();
+//							paqueteUsuario = new PaqueteUsuario();
+							
+							paqueteUsuario.setListaDeConectados(Servidor.UsuariosConectados);
+							System.out.println("ANSDASDASDA ");
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
-							
 							salida.writeObject(gson.toJson(paqueteUsuario));
+							
+							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
 							
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
@@ -89,6 +95,7 @@ public class EscuchaCliente extends Thread {
 						
 						// Lo elimino de los clientes conectados
 						Servidor.getClientesConectados().remove(this);
+						Servidor.UsuariosConectados.remove(paqueteUsuario.getUsername());
 						
 						// Indico que se desconecto
 						Servidor.log.append(paquete.getIp() + " se ha desconectado." + System.lineSeparator());

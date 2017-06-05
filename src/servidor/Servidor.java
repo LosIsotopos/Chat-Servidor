@@ -157,7 +157,7 @@ public class Servidor extends Thread {
 				ObjectOutputStream salida = new ObjectOutputStream(cliente.getOutputStream());
 				ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
 				
-				//AddUsername(cliente);
+//				AddUsername(cliente);
 				
 				EscuchaCliente atencion = new EscuchaCliente(ipRemota, cliente, entrada, salida);
 				atencion.start();
@@ -202,14 +202,9 @@ public class Servidor extends Thread {
 
 	public static boolean loguearUsuario(PaqueteUsuario user) {
 			boolean result = true;
-			int i = 0;
-			while(i < UsuariosConectados.size()) {
-				if(UsuariosConectados.get(i).equals(user.getUsername())) {
-					i = UsuariosConectados.size();
-					result = false;
-				}
-				i++;
-			}
+			if(UsuariosConectados.contains(user))
+				result = false;
+			
 			// Si existe inicio sesion
 			if (result) {
 				Servidor.log.append("El usuario " + user.getUsername() + " ha iniciado sesión." + System.lineSeparator());
