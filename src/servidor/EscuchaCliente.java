@@ -53,7 +53,15 @@ public class EscuchaCliente extends Thread {
 						synchronized(Servidor.atencionConexiones){
 							Servidor.atencionConexiones.notify();
 						}
-						
+//						//RANCIADITA
+//						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
+//						System.out.println("HOLA JAIME " + paqueteUsuario.getUsername());
+//						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
+//						
+//						synchronized(Servidor.atencionConexiones){
+//							Servidor.atencionConexiones.notify();
+//						}
+//						//FIN DE LA RANCIADITA
 						break;
 						
 					case Comando.INICIOSESION:
@@ -65,12 +73,22 @@ public class EscuchaCliente extends Thread {
 						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
 							
-							paqueteUsuario = new PaqueteUsuario();
+							Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
+							Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
+							synchronized(Servidor.atencionConexiones){
+								Servidor.atencionConexiones.notify();
+							}
+							paqueteUsuario.setUsuarioConectado(Servidor.getUsuariosConectados());
+							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
+								conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
+							}
+							paqueteUsuario.setUsuarioConectado(Servidor.UsuariosConectados);
+//							paqueteUsuario = new PaqueteUsuario();
+							
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
-							
 							salida.writeObject(gson.toJson(paqueteUsuario));
-							
+					
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));

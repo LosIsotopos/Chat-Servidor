@@ -85,6 +85,7 @@ public class Servidor extends Thread {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					estadoServer = false;
+					UsuariosConectados = new ArrayList<String>();
 					server.stop();
 					atencionConexiones.stop();
 					for (EscuchaCliente cliente : clientesConectados) {
@@ -114,6 +115,7 @@ public class Servidor extends Thread {
 				if (serverSocket != null) {
 					try {
 						estadoServer = false;
+						UsuariosConectados = new ArrayList<String>();
 						server.stop();
 						atencionConexiones.stop();
 						for (EscuchaCliente cliente : clientesConectados) {
@@ -143,9 +145,10 @@ public class Servidor extends Thread {
 			serverSocket = new ServerSocket(puerto);
 			log.append("Servidor esperando conexiones..." + System.lineSeparator());
 			String ipRemota;
+			
 			atencionConexiones = new AtencionConexiones();
 			atencionConexiones.start();
-
+		
 			while (estadoServer) {
 				Socket cliente = serverSocket.accept();
 				//Agrego el Socket a la lista de Sockets
@@ -202,19 +205,16 @@ public class Servidor extends Thread {
 
 	public static boolean loguearUsuario(PaqueteUsuario user) {
 			boolean result = true;
-			int i = 0;
-			while(i < UsuariosConectados.size()) {
-				if(UsuariosConectados.get(i).equals(user.getUsername())) {
-					i = UsuariosConectados.size();
-					result = false;
-				}
-				i++;
+			if(UsuariosConectados.contains(user.getUsername())) {
+				result = false;
 			}
+
 			// Si existe inicio sesion
 			if (result) {
-				Servidor.log.append("El usuario " + user.getUsername() + " ha iniciado sesión." + System.lineSeparator());
+			Servidor.log.append("El usuario " + user.getUsername() + " ha iniciado sesión." + System.lineSeparator());
 				return true;
-			} else {
+			} 
+			else {
 				// Si no existe informo y devuelvo false
 				Servidor.log.append("El usuario " + user.getUsername() + " ya se encuentra logeado." + System.lineSeparator());
 				return false;
