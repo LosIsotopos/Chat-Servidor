@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.google.gson.Gson;
 
@@ -19,7 +17,7 @@ public class EscuchaCliente extends Thread {
 	private final Socket socket;
 	private final ObjectInputStream entrada;
 	private final ObjectOutputStream salida;
-//	private int idEmisor;
+	
 	private final Gson gson = new Gson();
 	
 	private PaqueteUsuario paqueteUsuario;
@@ -45,15 +43,15 @@ public class EscuchaCliente extends Thread {
 								
 				switch (paquete.getComando()) {
 					
-					case Comando.CONEXION:
-						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class)).clone();
-						
-						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
-						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
-						
-						synchronized(Servidor.atencionConexiones){
-							Servidor.atencionConexiones.notify();
-						}
+//					case Comando.CONEXION:
+//						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class)).clone();
+//						
+//						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
+//						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
+//						
+//						synchronized(Servidor.atencionConexiones){
+//							Servidor.atencionConexiones.notify();
+//						}
 //						//RANCIADITA
 //						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
 //						System.out.println("HOLA JAIME " + paqueteUsuario.getUsername());
@@ -63,7 +61,7 @@ public class EscuchaCliente extends Thread {
 //							Servidor.atencionConexiones.notify();
 //						}
 //						//FIN DE LA RANCIADITA
-						break;
+//						break;
 						
 					case Comando.INICIOSESION:
 						paqueteSv.setComando(Comando.INICIOSESION);
@@ -80,15 +78,21 @@ public class EscuchaCliente extends Thread {
 							paqueteUsuario.setComando(Comando.INICIOSESION);
 							paqueteUsuario.setMensaje(Paquete.msjExito);
 							
+							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
 							
 //							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
+//								System.out.println(conectado.getName());
 //								conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
 //							}
 							
-							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
-							
 							salida.writeObject(gson.toJson(paqueteUsuario));
 							
+							// COMO SE CONECTO 1 LE DIGO AL SERVER QUE LE MANDE A TODOS LOS QUE SE CONECTAN
+							synchronized(Servidor.atencionConexiones){
+								Servidor.atencionConexiones.notify();
+							}
+							
+							break;
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));
@@ -193,10 +197,6 @@ public class EscuchaCliente extends Thread {
 	public ObjectOutputStream getSalida() {
 		return salida;
 	}
-	
-//	public int getIdEmisor() {
-//		return idEmisor;
-//	}
 
 	public PaqueteUsuario getPaqueteUsuario() {
 		return paqueteUsuario;
