@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
+import mensajeria.PaqueteMensaje;
 import mensajeria.PaqueteUsuario;
 import java.awt.TextArea;
 
@@ -24,7 +25,7 @@ public class Servidor extends Thread {
 	public static ArrayList<Socket> SocketsConectados = new ArrayList<Socket>();
 	public static ArrayList<String> UsuariosConectados = new ArrayList<String>();
 	private static ArrayList<EscuchaCliente> clientesConectados = new ArrayList<>();
-	public static Map<String, PaqueteUsuario> personajesConectados = new HashMap<>();
+	public static Map<String, Socket> mapConectados = new HashMap<>();
 	
 	private static ServerSocket serverSocket;
 	private final int puerto = 9999;
@@ -151,8 +152,6 @@ public class Servidor extends Thread {
 				ObjectOutputStream salida = new ObjectOutputStream(cliente.getOutputStream());
 				ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
 				
-//				AddUsername(cliente);
-				
 				EscuchaCliente atencion = new EscuchaCliente(ipRemota, cliente, entrada, salida);
 				atencion.start();
 				clientesConectados.add(atencion);
@@ -171,17 +170,6 @@ public class Servidor extends Thread {
 		Servidor.clientesConectados = clientesConectados;
 	}
 
-//	public void addUserName(Socket cliente) {
-//		//gson...
-//		String Username = "";// = Gson
-//		UsuariosConectados.add(Username);
-//		
-//		for (int i = 1; i < SocketsConectados.size(); i++) {
-//			Socket temp = (Socket) SocketsConectados.get(i-1);
-//			//gson output
-//		}
-//	}
-
 	public static ArrayList<String> getUsuariosConectados() {
 		return UsuariosConectados;
 	}
@@ -195,27 +183,42 @@ public class Servidor extends Thread {
 	}
 
 	public static boolean loguearUsuario(PaqueteUsuario user) {
-			boolean result = true;
-			if(UsuariosConectados.contains(user.getUsername())) {
-				result = false;
-			}
-			// Si existe inicio sesion
-			if (result) {
+		boolean result = true;
+		if(UsuariosConectados.contains(user.getUsername())) {
+			result = false;
+		}
+		// Si existe inicio sesion
+		if (result) {
 			Servidor.log.append("El usuario " + user.getUsername() + " ha iniciado sesión." + System.lineSeparator());
+			return true;
+		} else {
+			// Si no existe informo y devuelvo false
+			Servidor.log.append("El usuario " + user.getUsername() + " ya se encuentra logeado." + System.lineSeparator());
+			return false;
+		}
+	}
+
+	public static boolean mensajeAUsuario(PaqueteMensaje pqm) {
+		boolean result = true;
+		if(!UsuariosConectados.contains(pqm.getUserReceptor())) {
+			result = false;
+		}
+		// Si existe inicio sesion
+		if (result) {
+			Servidor.log.append(pqm.getUserEmisor() + " envió mensaje a " + pqm.getUserReceptor() + System.lineSeparator());
 				return true;
-			} 
-			else {
-				// Si no existe informo y devuelvo false
-				Servidor.log.append("El usuario " + user.getUsername() + " ya se encuentra logeado." + System.lineSeparator());
-				return false;
-			}
+		} else {
+			// Si no existe informo y devuelvo false
+			Servidor.log.append("El mensaje para " + pqm.getUserReceptor() + " no se envió, ya que se encuentra desconectado." + System.lineSeparator());
+			return false;
+		}
+}
+	
+	public static Map<String, Socket> getPersonajesConectados() {
+		return mapConectados;
 	}
 
-	public static Map<String, PaqueteUsuario> getPersonajesConectados() {
-		return personajesConectados;
-	}
-
-	public static void setPersonajesConectados(Map<String, PaqueteUsuario> personajesConectados) {
-		Servidor.personajesConectados = personajesConectados;
+	public static void setPersonajesConectados(Map<String, Socket> personajesConectados) {
+		Servidor.mapConectados = personajesConectados;
 	}
 }

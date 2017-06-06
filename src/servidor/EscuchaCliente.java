@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import mensajeria.Comando;
 import mensajeria.Paquete;
 import mensajeria.PaqueteDeUsuarios;
+import mensajeria.PaqueteMensaje;
 import mensajeria.PaqueteUsuario;
 
 public class EscuchaCliente extends Thread {
@@ -22,6 +23,7 @@ public class EscuchaCliente extends Thread {
 	
 	private PaqueteUsuario paqueteUsuario;
 	private PaqueteDeUsuarios paqueteDeUsuarios;
+	private PaqueteMensaje paqueteMensaje;
 
 	public EscuchaCliente(String ip, Socket socket, ObjectInputStream entrada, ObjectOutputStream salida) {
 		this.socket = socket;
@@ -42,26 +44,6 @@ public class EscuchaCliente extends Thread {
 			while (!((paquete = gson.fromJson(cadenaLeida, Paquete.class)).getComando() == Comando.DESCONECTAR)){
 								
 				switch (paquete.getComando()) {
-					
-//					case Comando.CONEXION:
-//						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class)).clone();
-//						
-//						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
-//						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
-//						
-//						synchronized(Servidor.atencionConexiones){
-//							Servidor.atencionConexiones.notify();
-//						}
-//						//RANCIADITA
-//						Servidor.getPersonajesConectados().put(paqueteUsuario.getUsername(), (PaqueteUsuario) paqueteUsuario.clone());
-//						System.out.println("HOLA JAIME " + paqueteUsuario.getUsername());
-//						Servidor.getUsuariosConectados().add(paqueteUsuario.getUsername());
-//						
-//						synchronized(Servidor.atencionConexiones){
-//							Servidor.atencionConexiones.notify();
-//						}
-//						//FIN DE LA RANCIADITA
-//						break;
 						
 					case Comando.INICIOSESION:
 						paqueteSv.setComando(Comando.INICIOSESION);
@@ -71,8 +53,6 @@ public class EscuchaCliente extends Thread {
 						
 						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
-//							String user = paqueteUsuario.getUsername();
-//							paqueteUsuario = new PaqueteUsuario();
 							
 							paqueteUsuario.setListaDeConectados(Servidor.UsuariosConectados);
 							paqueteUsuario.setComando(Comando.INICIOSESION);
@@ -80,10 +60,9 @@ public class EscuchaCliente extends Thread {
 							
 							Servidor.UsuariosConectados.add(paqueteUsuario.getUsername());
 							
-//							for(EscuchaCliente conectado : Servidor.getClientesConectados()) {
-//								System.out.println(conectado.getName());
-//								conectado.getSalida().writeObject(gson.toJson(paqueteUsuario));
-//							}
+							// Consigo el socket, y entonces ahora pongo el username y el socket en el map
+							int index = Servidor.UsuariosConectados.indexOf(paqueteUsuario.getUsername());
+							Servidor.mapConectados.put(paqueteUsuario.getUsername(), Servidor.SocketsConectados.get(index));
 							
 							salida.writeObject(gson.toJson(paqueteUsuario));
 							
@@ -91,8 +70,8 @@ public class EscuchaCliente extends Thread {
 							synchronized(Servidor.atencionConexiones){
 								Servidor.atencionConexiones.notify();
 							}
-							
 							break;
+							
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));
@@ -100,6 +79,26 @@ public class EscuchaCliente extends Thread {
 						break;
 						
 					case Comando.TALK:
+						paqueteMensaje = (PaqueteMensaje) (gson.fromJson(cadenaLeida, PaqueteMensaje.class));
+						if (Servidor.mensajeAUsuario(paqueteMensaje)) {
+							System.out.println("SV RECIVIO MSJ");
+							// buscar en hashmap
+							paqueteMensaje.setComando(Comando.TALK);
+							
+							Socket s1 = Servidor.mapConectados.get(paqueteMensaje.getUserReceptor());
+							
+//							ObjectOutputStream sOut = new ObjectOutputStream(s1.getOutputStream());
+//							sOut.writeObject(gson.toJson(paqueteMensaje));
+							for (EscuchaCliente conectado : Servidor.getClientesConectados()) {
+								if(conectado.getSocket() == s1)	{
+									conectado.getSalida().writeObject(gson.toJson(paqueteMensaje));		
+								}
+							}
+//							salida = new ObjectOutputStream(s1.getOutputStream());
+//							salida.writeObject(gson.toJson(paqueteMensaje));
+						} else {
+							System.out.println("DESAPARECIO MSJ");
+						}
 						break;
 						
 					case Comando.SALIR:
