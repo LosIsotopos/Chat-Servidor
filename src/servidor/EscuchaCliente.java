@@ -38,7 +38,7 @@ public class EscuchaCliente extends Thread {
 			Paquete paquete;
 			Paquete paqueteSv = new Paquete(null, 0);
 			PaqueteUsuario paqueteUsuario = new PaqueteUsuario();
-
+			
 			String cadenaLeida = (String) entrada.readObject();
 		
 			while (!((paquete = gson.fromJson(cadenaLeida, Paquete.class)).getComando() == Comando.DESCONECTAR)){
@@ -81,25 +81,16 @@ public class EscuchaCliente extends Thread {
 					case Comando.TALK:
 						paqueteMensaje = (PaqueteMensaje) (gson.fromJson(cadenaLeida, PaqueteMensaje.class));
 						if (Servidor.mensajeAUsuario(paqueteMensaje)) {
-							System.out.println("SV RECIVIO MSJ");
-							// buscar en hashmap
+
 							paqueteMensaje.setComando(Comando.TALK);
 							
 							Socket s1 = Servidor.mapConectados.get(paqueteMensaje.getUserReceptor());
-							Socket s2 = Servidor.mapConectados.get(paqueteMensaje.getUserEmisor());
 							
-//							ObjectOutputStream sOut = new ObjectOutputStream(s1.getOutputStream());
-//							sOut.writeObject(gson.toJson(paqueteMensaje));
 							for (EscuchaCliente conectado : Servidor.getClientesConectados()) {
-								if(conectado.getSocket() == s1 || conectado.getSocket() == s2)	{
+								if(conectado.getSocket() == s1)	{
 									conectado.getSalida().writeObject(gson.toJson(paqueteMensaje));	
-									System.out.println("LE ENVIE A UNO AMIGO");
 								}
 							}
-							
-							
-//							salida = new ObjectOutputStream(s1.getOutputStream());
-//							salida.writeObject(gson.toJson(paqueteMensaje));
 							
 						} else {
 							System.out.println("DESAPARECIO MSJ");
@@ -132,7 +123,10 @@ public class EscuchaCliente extends Thread {
 				
 				salida.flush();
 				
-				cadenaLeida = (String) entrada.readObject();
+				synchronized (entrada) {
+					cadenaLeida = (String) entrada.readObject();
+					
+				}
 			}
 
 			entrada.close();
