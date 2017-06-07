@@ -214,6 +214,22 @@ public class Servidor extends Thread {
 		}
 	}
 	
+	public static boolean mensajeAAll(int contador) {
+		boolean result = true;
+		if(UsuariosConectados.size() != contador+1) {
+			result = false;
+		}
+		// Si existe inicio sesion
+		if (result) {
+			Servidor.log.append("Se ha enviado un mensaje a todos los usuarios" + System.lineSeparator());
+				return true;
+		} else {
+			// Si no existe informo y devuelvo false
+			Servidor.log.append("Uno o más de todos los usuarios se ha desconectado, se ha mandado el mensaje a los demas." + System.lineSeparator());
+			return false;
+		}
+	}
+	
 	public static Map<String, Socket> getPersonajesConectados() {
 		return mapConectados;
 	}

@@ -98,39 +98,20 @@ public class EscuchaCliente extends Thread {
 						break;
 						
 					case Comando.CHATALL:
-						System.out.println("ENTRE A CHATALL");
 						paqueteMensaje = (PaqueteMensaje) (gson.fromJson(cadenaLeida, PaqueteMensaje.class));
 						paqueteMensaje.setComando(Comando.CHATALL);
 						
 						Socket s1 = Servidor.mapConectados.get(paqueteMensaje.getUserEmisor());
-						
+						int count = 0;
 						for (EscuchaCliente conectado : Servidor.getClientesConectados()) {
 							if(conectado.getSocket() != s1)	{
-								conectado.getSalida().writeObject(gson.toJson(paqueteMensaje));	
+								conectado.getSalida().writeObject(gson.toJson(paqueteMensaje));
+								count++;
 							}
 						}
+						Servidor.mensajeAAll(count);
 						break;
 						
-					case Comando.SALIR:
-						
-						// Cierro todo
-						entrada.close();
-						salida.close();
-						socket.close();
-						
-						// Lo elimino de los clientes conectados
-						Servidor.getClientesConectados().remove(this);
-						Servidor.UsuariosConectados.remove(paqueteUsuario.getUsername());
-						
-						// Indico que se desconecto
-						Servidor.log.append(paquete.getIp() + " se ha desconectado." + System.lineSeparator());
-						
-						return;
-						
-					case Comando.DESCONECTAR:
-						Servidor.log.append(paqueteUsuario.getUsername() + " se ha desconectado." + System.lineSeparator());
-						break;
-
 					default:
 						break;
 					}
@@ -143,6 +124,8 @@ public class EscuchaCliente extends Thread {
 				}
 			}
 
+			Servidor.log.append(paqueteUsuario.getUsername() + " se ha desconectado." + System.lineSeparator());
+			
 			entrada.close();
 			salida.close();
 			socket.close();
