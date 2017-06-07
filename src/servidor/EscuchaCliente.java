@@ -97,6 +97,20 @@ public class EscuchaCliente extends Thread {
 						}
 						break;
 						
+					case Comando.CHATALL:
+						System.out.println("ENTRE A CHATALL");
+						paqueteMensaje = (PaqueteMensaje) (gson.fromJson(cadenaLeida, PaqueteMensaje.class));
+						paqueteMensaje.setComando(Comando.CHATALL);
+						
+						Socket s1 = Servidor.mapConectados.get(paqueteMensaje.getUserEmisor());
+						
+						for (EscuchaCliente conectado : Servidor.getClientesConectados()) {
+							if(conectado.getSocket() != s1)	{
+								conectado.getSalida().writeObject(gson.toJson(paqueteMensaje));	
+							}
+						}
+						break;
+						
 					case Comando.SALIR:
 						
 						// Cierro todo

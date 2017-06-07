@@ -212,7 +212,7 @@ public class Servidor extends Thread {
 			Servidor.log.append("El mensaje para " + pqm.getUserReceptor() + " no se envió, ya que se encuentra desconectado." + System.lineSeparator());
 			return false;
 		}
-}
+	}
 	
 	public static Map<String, Socket> getPersonajesConectados() {
 		return mapConectados;
