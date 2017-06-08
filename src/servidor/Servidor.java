@@ -97,11 +97,8 @@ public class Servidor extends Thread {
 		});
 		botonDetener.setEnabled(false);
 		ventana.getContentPane().add(botonDetener);
-		
-		
-		
-
 		ventana.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
 		ventana.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				if (serverSocket != null) {
@@ -125,7 +122,6 @@ public class Servidor extends Thread {
 				System.exit(0);
 			}
 		});
-
 		ventana.setVisible(true);
 	}
 	

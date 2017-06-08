@@ -34,15 +34,13 @@ public class EscuchaCliente extends Thread {
 
 	public void run() {
 		try {
-
 			Paquete paquete;
 			Paquete paqueteSv = new Paquete(null, 0);
 			PaqueteUsuario paqueteUsuario = new PaqueteUsuario();
 			
 			String cadenaLeida = (String) entrada.readObject();
 		
-			while (!((paquete = gson.fromJson(cadenaLeida, Paquete.class)).getComando() == Comando.DESCONECTAR)){
-								
+			while (!((paquete = gson.fromJson(cadenaLeida, Paquete.class)).getComando() == Comando.DESCONECTAR)) {							
 				switch (paquete.getComando()) {
 						
 					case Comando.INICIOSESION:
@@ -51,7 +49,7 @@ public class EscuchaCliente extends Thread {
 						// Recibo el paquete usuario
 						paqueteUsuario = (PaqueteUsuario) (gson.fromJson(cadenaLeida, PaqueteUsuario.class));
 						
-						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete personaje con los datos
+						// Si se puede loguear el usuario le envio un mensaje de exito y el paquete usuario con los datos
 						if (Servidor.loguearUsuario(paqueteUsuario)) {
 							
 							paqueteUsuario.setListaDeConectados(Servidor.UsuariosConectados);
@@ -75,9 +73,20 @@ public class EscuchaCliente extends Thread {
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));
-							// HAY QUE CERRAR TODO LO QUE RESPECTA AL QUE NO SE PUDO LOGEAR, SOCKETS Y ESO
+							synchronized (this) {
+								this.wait(200);
+							}
+							entrada.close();
+							salida.close();
+							
+							Servidor.SocketsConectados.remove(socket);
+							Servidor.getClientesConectados().remove(this);
+							
+							socket.close();
+							this.stop();
+							
+							return;
 						}
-						break;
 						
 					case Comando.TALK:
 						paqueteMensaje = (PaqueteMensaje) (gson.fromJson(cadenaLeida, PaqueteMensaje.class));
@@ -94,7 +103,7 @@ public class EscuchaCliente extends Thread {
 							}
 							
 						} else {
-							System.out.println("DESAPARECIO MSJ");
+							System.out.println("Server: Mensaje No Enviado!");
 						}
 						break;
 						
@@ -115,16 +124,14 @@ public class EscuchaCliente extends Thread {
 						
 					default:
 						break;
-					}
+				}
 				
 				salida.flush();
 				
 				synchronized (entrada) {
 					cadenaLeida = (String) entrada.readObject();
-					
 				}
 			}
-
 			Servidor.log.append(paqueteUsuario.getUsername() + " se ha desconectado." + System.lineSeparator());
 			
 			entrada.close();
@@ -148,6 +155,8 @@ public class EscuchaCliente extends Thread {
 		} catch (IOException | ClassNotFoundException e) {
 			Servidor.log.append("Error de conexion: " + e.getMessage() + System.lineSeparator());
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		} 
 	}
 	
@@ -170,7 +179,4 @@ public class EscuchaCliente extends Thread {
 	public void setPaqueteUsuario(PaqueteUsuario paqueteUsuario) {
 		this.paqueteUsuario = paqueteUsuario;
 	}
-
-
 }
-
