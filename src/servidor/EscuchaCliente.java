@@ -75,6 +75,7 @@ public class EscuchaCliente extends Thread {
 						} else {
 							paqueteSv.setMensaje(Paquete.msjFracaso);
 							salida.writeObject(gson.toJson(paqueteSv));
+							// HAY QUE CERRAR TODO LO QUE RESPECTA AL QUE NO SE PUDO LOGEAR, SOCKETS Y ESO
 						}
 						break;
 						
@@ -130,6 +131,8 @@ public class EscuchaCliente extends Thread {
 			salida.close();
 			socket.close();
 
+			int index = Servidor.UsuariosConectados.indexOf(paqueteUsuario.getUsername());
+			Servidor.SocketsConectados.remove(index);
 			Servidor.getPersonajesConectados().remove(paqueteUsuario.getUsername());
 			Servidor.getUsuariosConectados().remove(paqueteUsuario.getUsername());
 			Servidor.getClientesConectados().remove(this);
